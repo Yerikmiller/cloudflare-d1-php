@@ -4,10 +4,11 @@ namespace Cloudflare\D1;
 
 class D1
 {
-    private $accountId;
-    private $apiToken;
-    private $databaseId;
     private $baseUrl = 'https://api.cloudflare.com/client/v4/accounts/%s/d1/database/%s/query';
+    private ?string $final_url = null;
+    public static ?string $accountId;
+    public static ?string $apiToken;
+    public static ?string $databaseId;
 
     /**
      * Create a new D1 instance.
@@ -16,11 +17,12 @@ class D1
      * @param string $apiToken Your Cloudflare API token with D1 permissions
      * @param string $databaseId Your D1 database ID
      */
-    public function __construct(string $accountId, string $apiToken, string $databaseId)
+    public function __construct(?string $accountId = null, ?string $apiToken = null, ?string $databaseId = null)
     {
-        $this->accountId = $accountId;
-        $this->apiToken = $apiToken;
-        $this->databaseId = $databaseId;
+        self::$accountId = $accountId ?? self::$accountId;
+        self::$apiToken = $apiToken ?? self::$apiToken;
+        self::$databaseId = $databaseId ?? self::$databaseId;
+        $this->final_url = sprintf($this->baseUrl, self::$accountId, self::$databaseId);
     }
 
     /**
@@ -33,10 +35,10 @@ class D1
      */
     public function query(string $query, array $params = []): D1Result
     {
-        $url = sprintf($this->baseUrl, $this->accountId, $this->databaseId);
+        $url = $this->final_url;
         
         $headers = [
-            'Authorization: Bearer ' . $this->apiToken,
+            'Authorization: Bearer ' . self::$apiToken,
             'Content-Type: application/json',
         ];
 
