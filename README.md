@@ -12,7 +12,7 @@ A lightweight, framework-agnostic PHP client for interacting with Cloudflare D1 
 ## Installation
 
 ```bash
-composer require kolosos/cloudflare-d1-php
+composer require yerikmiller/cloudflare-d1-php
 ```
 
 ## Usage
