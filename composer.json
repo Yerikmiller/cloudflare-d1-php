@@ -1,5 +1,5 @@
 {
-    "name": "kolosos/cloudflare-d1-php",
+    "name": "yerikmiller/cloudflare-d1-php",
     "description": "A lightweight PHP client for Cloudflare D1 database",
     "type": "library",
     "license": "MIT",
