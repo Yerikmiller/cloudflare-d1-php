@@ -25,11 +25,12 @@ require 'vendor/autoload.php';
 use Cloudflare\D1\D1;
 
 // Initialize the D1 client
-$d1 = new D1(
-    'your-account-id',      // Cloudflare Account ID
-    'your-api-token',      // Cloudflare API Token with D1 permissions
-    'your-database-id'     // D1 Database ID
-);
+D1::$accountId = 'your-account-id';
+D1::$apiToken = 'your-api-token';
+D1::$databaseId = 'your-database-id';
+
+// Create a new D1 instance whatever you want
+$d1 = new D1();
 ```
 
 ### Executing Queries
