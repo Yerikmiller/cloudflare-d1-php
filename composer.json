@@ -26,7 +26,5 @@
         "psr-4": {
             "Cloudflare\\D1\\Tests\\": "tests/"
         }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+    }
 }
