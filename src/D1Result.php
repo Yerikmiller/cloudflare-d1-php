@@ -52,11 +52,25 @@ class D1Result
     /**
      * Get the number of rows affected by the query.
      *
+     * D1 reports this as `changes`, the SQLite changes() counter.
+     * `rows_written` covers payloads that only carry that counter, and
+     * `rows_affected` is kept for older envelopes.
+     *
+     * Reading `rows_affected` alone - as this method used to - returns 0 on the
+     * current API, because that key does not exist in the response. Every
+     * INSERT, UPDATE and DELETE therefore reported zero affected rows.
+     *
      * @return int
      */
     public function affectedRows(): int
     {
-        return (int) ($this->meta['rows_affected'] ?? 0);
+        foreach (['changes', 'rows_written', 'rows_affected'] as $key) {
+            if (array_key_exists($key, $this->meta)) {
+                return (int) $this->meta[$key];
+            }
+        }
+
+        return 0;
     }
 
     /**
