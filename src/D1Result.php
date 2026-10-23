@@ -2,17 +2,21 @@
 
 namespace Cloudflare\D1;
 
+/**
+ * Wraps a single Cloudflare D1 statement result:
+ * `["results" => [...], "meta" => [...], "success" => true]`.
+ */
 class D1Result
 {
-    private $result;
-    private $rows;
-    private $meta;
+    private array $result;
+    private array $rows;
+    private array $meta;
 
     public function __construct(array $result)
     {
         $this->result = $result;
-        $this->rows = $result['results'] ?? [];
-        $this->meta = $result['meta'] ?? [];
+        $this->rows = isset($result['results']) && is_array($result['results']) ? $result['results'] : [];
+        $this->meta = isset($result['meta']) && is_array($result['meta']) ? $result['meta'] : [];
     }
 
     /**
@@ -52,7 +56,7 @@ class D1Result
      */
     public function affectedRows(): int
     {
-        return $this->meta['rows_affected'] ?? 0;
+        return (int) ($this->meta['rows_affected'] ?? 0);
     }
 
     /**
@@ -62,7 +66,17 @@ class D1Result
      */
     public function lastInsertId(): int
     {
-        return $this->meta['last_row_id'] ?? 0;
+        return (int) ($this->meta['last_row_id'] ?? 0);
+    }
+
+    /**
+     * Get the raw statement metadata (timings, changes, served_by, ...).
+     *
+     * @return array
+     */
+    public function meta(): array
+    {
+        return $this->meta;
     }
 
     /**

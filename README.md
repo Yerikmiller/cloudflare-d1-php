@@ -4,7 +4,7 @@ A lightweight, framework-agnostic PHP client for interacting with Cloudflare D1 
 
 ## Requirements
 
-- PHP 7.4 or higher
+- PHP 8.0 or higher
 - cURL extension
 - JSON extension
 - A Cloudflare account with D1 database access
@@ -24,13 +24,43 @@ require 'vendor/autoload.php';
 
 use Cloudflare\D1\D1;
 
-// Initialize the D1 client
-D1::$accountId = 'your-account-id';
-D1::$apiToken = 'your-api-token';
-D1::$databaseId = 'your-database-id';
+$d1 = new D1('your-account-id', 'your-api-token', 'your-database-id');
+```
 
-// Create a new D1 instance whatever you want
+That is all the setup there is. Each client owns its credentials, so several
+databases can be used in the same process without them interfering.
+
+All three credentials are required. Passing an empty string throws
+`D1Exception` at construction time, rather than sending a request with an empty
+account or database ID.
+
+### Upgrading from 0.x
+
+The static properties `D1::$accountId`, `D1::$apiToken` and `D1::$databaseId`
+are gone. They were a process-wide default that let one client's token replace
+another's, so they are now required constructor arguments:
+
+```php
+// before
+D1::$accountId = 'id';
+D1::$apiToken = 'token';
+D1::$databaseId = 'db';
 $d1 = new D1();
+
+// after
+$d1 = new D1('id', 'token', 'db');
+```
+
+If a framework needs a single configured client, bind it as a container
+singleton instead of reintroducing global state.
+
+### Timeouts
+
+Requests are bounded by default: 10 seconds to connect, 30 seconds in total.
+A stalled API therefore cannot block a PHP worker forever.
+
+```php
+$d1 = (new D1('id', 'token', 'db'))->setConnectTimeout(5)->setTimeout(15);
 ```
 
 ### Executing Queries
