@@ -2,17 +2,21 @@
 
 namespace Cloudflare\D1;
 
+/**
+ * Wraps a single Cloudflare D1 statement result:
+ * `["results" => [...], "meta" => [...], "success" => true]`.
+ */
 class D1Result
 {
-    private $result;
-    private $rows;
-    private $meta;
+    private array $result;
+    private array $rows;
+    private array $meta;
 
     public function __construct(array $result)
     {
         $this->result = $result;
-        $this->rows = $result['results'] ?? [];
-        $this->meta = $result['meta'] ?? [];
+        $this->rows = isset($result['results']) && is_array($result['results']) ? $result['results'] : [];
+        $this->meta = isset($result['meta']) && is_array($result['meta']) ? $result['meta'] : [];
     }
 
     /**
@@ -48,11 +52,25 @@ class D1Result
     /**
      * Get the number of rows affected by the query.
      *
+     * D1 reports this as `changes`, the SQLite changes() counter.
+     * `rows_written` covers payloads that only carry that counter, and
+     * `rows_affected` is kept for older envelopes.
+     *
+     * Reading `rows_affected` alone - as this method used to - returns 0 on the
+     * current API, because that key does not exist in the response. Every
+     * INSERT, UPDATE and DELETE therefore reported zero affected rows.
+     *
      * @return int
      */
     public function affectedRows(): int
     {
-        return $this->meta['rows_affected'] ?? 0;
+        foreach (['changes', 'rows_written', 'rows_affected'] as $key) {
+            if (array_key_exists($key, $this->meta)) {
+                return (int) $this->meta[$key];
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -62,7 +80,17 @@ class D1Result
      */
     public function lastInsertId(): int
     {
-        return $this->meta['last_row_id'] ?? 0;
+        return (int) ($this->meta['last_row_id'] ?? 0);
+    }
+
+    /**
+     * Get the raw statement metadata (timings, changes, served_by, ...).
+     *
+     * @return array
+     */
+    public function meta(): array
+    {
+        return $this->meta;
     }
 
     /**
