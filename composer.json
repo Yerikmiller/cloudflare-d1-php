@@ -1,5 +1,5 @@
 {
-    "name": "yerikmiller/cloudflare-d1-php",
+    "name": "mdestafadilah/cloudflare-d1-php",
     "description": "A lightweight PHP client for Cloudflare D1 database",
     "type": "library",
     "keywords": [
