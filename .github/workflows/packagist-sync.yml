@@ -1,0 +1,44 @@
+name: Packagist Sync
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  packagist:
+    name: Notify Packagist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Packagist update
+        env:
+          PACKAGIST_USERNAME: ${{ secrets.PACKAGIST_USERNAME }}
+          PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
+        run: |
+          if [ -z "$PACKAGIST_USERNAME" ] || [ -z "$PACKAGIST_TOKEN" ]; then
+            echo "::warning::PACKAGIST_USERNAME or PACKAGIST_TOKEN secret is not set."
+            echo "::warning::Create them at: Settings > Secrets and variables > Actions"
+            echo "::warning::Token must be the MAIN token (not SAFE) from https://packagist.org/profile/"
+            exit 0
+          fi
+
+          RESPONSE=$(curl -sS -w "\n%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${PACKAGIST_USERNAME}:${PACKAGIST_TOKEN}" \
+            -d '{"repository":"https://github.com/mdestafadilah/cloudflare-d1-php"}' \
+            https://packagist.org/api/update-package)
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP $HTTP_CODE"
+          echo "$BODY"
+
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+            echo "::notice::Packagist updated successfully"
+          else
+            echo "::error::Packagist update failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
